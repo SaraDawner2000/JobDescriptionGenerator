@@ -1,7 +1,23 @@
 ﻿@page "/"
+@inject AppDbContext Db
+@inject JobLevelDictionary JobLevelDictionary;
 
-<PageTitle>Home</PageTitle>
+<select @bind="selectedJobFamilyId">
+    <option disabled selected value="">-- Select Job Family --</option>
+    @foreach (var family in jobFamilies)
+    {
+        <option value="@family.JobFamilyId">@family.JobFamilyName</option>
+    }
+</select>
 
-<h1>Hello, world!</h1>
+<p>You selected ID: @selectedJobFamilyId</p>
 
-Welcome to your new app.
+@code {
+    private List<JobFamily> jobFamilies = new();
+    private int? selectedJobFamilyId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        jobFamilies = await Db.JobFamilies.ToListAsync();
+    }
+}
