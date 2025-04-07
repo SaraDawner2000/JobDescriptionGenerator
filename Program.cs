@@ -1,10 +1,20 @@
+using System.Text.Json;
 using JobDescriptionGenerator.Components;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var json = File.ReadAllText("Data/JobLevels.json");
+var jobLevels = JsonSerializer.Deserialize<JobLevelDictionary>(json)!;
+
+builder.Services.AddSingleton(jobLevels);
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=dev.db"));
+
 
 var app = builder.Build();
 
@@ -26,3 +36,5 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+public class JobLevelDictionary : Dictionary<string, string> { }
