@@ -1,6 +1,7 @@
-using System.Text.Json;
 using JobDescriptionGenerator.Components;
 using Microsoft.EntityFrameworkCore;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,10 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var json = File.ReadAllText("Data/JobLevels.json");
-var jobLevels = JsonSerializer.Deserialize<JobLevelDictionary>(json)!;
+builder.Services.AddSingleton(sp =>
+{
+    var yaml = File.ReadAllText("Data/JobLevels.yaml");
+    return new DeserializerBuilder()
+        .WithNamingConvention(NullNamingConvention.Instance)
+        .Build()
+        .Deserialize<JobLevelDictionary>(yaml);
+});
 
-builder.Services.AddSingleton(jobLevels);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));
 
@@ -37,4 +43,4 @@ app.MapRazorComponents<App>()
 
 app.Run();
 
-public class JobLevelDictionary : Dictionary<string, string> { }
+public class JobLevelDictionary : Dictionary<string, List<string>> { }
