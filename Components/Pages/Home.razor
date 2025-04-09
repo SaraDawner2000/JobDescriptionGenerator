@@ -1,12 +1,15 @@
 ﻿@page "/"
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext Db
+@inject IJobLevelService JobLevelService
 @inject JobLevelDictionary JobLevelDictionary
 @rendermode InteractiveServer
+
+
 <h1>Generate a job description</h1>
 <div class="mt-3">
     <label for="jobFamilySelection">Select a Job Family</label>
-    <select id="jobFamilySelection" @bind="selectedJobFamilyId" @bind:after="OnJobFamilySelected">
+    <select id="jobFamilySelection" @bind="selectedJobFamilyId">
         <option disabled selected value="">-- Select Job Family --</option>
         @foreach (var family in jobFamilies)
         {
@@ -14,24 +17,49 @@
         }
     </select>
 </div>
-@if (jobTitles.Any())
+@if (selectedJobFamilyId is not null)
 {
-    <div>
-        <label for="jobTitleSelection">Select a Job Title</label>
-        <select id="jobTitleSelection" @bind="selectedJobTitleId">
-            <option disabled selected value="">-- Select Job Title --</option>
-            @foreach (var title in jobTitles)
+    <div class="mt-3">
+        <label for="jobLevelSelection">Select a Job Level</label>
+        <select id="jobLevelSelection" @bind="selectedJobLevelId">
+            <option disabled selected value="">-- Select Job Level --</option>
+            @foreach (var (id, name) in JobLevelService.GetLevelsForFamily(selectedJobFamilyId.Value))
             {
-                <option value="@title.JobTitleId">@title.JobTitleName</option>
+                <option value="@id">@name</option>
             }
         </select>
     </div>
 }
 
-@if (selectedJobTitleId is not null)
+@if (selectedJobLevelId is not null)
 {
     <div class="mt-3">
-        <label for="radioGroup">Is a People Manager?</label>
+        <label for="skillsList"><strong>Skills and Knowledge</strong></label>
+        <ul id="skillsList">
+            @{
+                var levelName = JobLevelService.GetNameForLevel(selectedJobLevelId.Value);
+                var skills = JobLevelDictionary.GetValueOrDefault(levelName) ?? new();
+            }
+            @foreach (var skill in skills)
+            {
+                <li>@skill</li>
+            }
+            @for (int i = 0; i < additionalKnowledgeAndSkills.Count; i++)
+            {
+                var index = i;
+                <li>
+                    <div class="mb-2">
+                        <textarea @bind="additionalKnowledgeAndSkills[index]" rows="2" cols="60"
+                            placeholder="Describe skill or knowledge..."></textarea>
+                        <button type="button" @onclick="() => RemoveKnowledgeSkill(index)">Remove</button>
+                    </div>
+                </li>
+            }
+        </ul>
+        <button type="button" @onclick="AddKnowledgeSkill">+ Add Requirement</button>
+    </div>
+    <div class="mt-3">
+        <label for="radioGroup"><strong>Is a People Manager?</strong></label>
         <InputRadioGroup id="radioGroup" @bind-value="isManager">
             <InputRadio value="true" id="managerYes" />
             <label for="managerYes">Yes</label>
@@ -43,16 +71,16 @@
 
     <div class="mt-3">
         <label><strong>Job Purpose</strong></label><br />
-        <textarea @bind="jobPurpose" rows="4" cols="50" placeholder="Describe job purpose..."></textarea>
+        <textarea @bind="jobPurpose" rows="4" cols="60" placeholder="Describe job purpose..."></textarea>
     </div>
 
     <div class="mt-3">
         <label><strong>Key Accountabilities</strong></label><br />
-        @for (int i = 0; i < keyAccountabilities.Count; i++)
+        @for (int i = 1; i < keyAccountabilities.Count; i++)
         {
             var index = i;
             <div class="mb-2">
-                <textarea @bind="keyAccountabilities[index]" rows="2" cols="50"
+                <textarea @bind="keyAccountabilities[index]" rows="2" cols="60"
                     placeholder="Describe accountability..."></textarea>
                 <button type="button" @onclick="() => RemoveAccountability(index)">Remove</button>
             </div>
@@ -68,12 +96,13 @@
 
 @code {
     private List<JobFamily> jobFamilies = new();
-    private List<JobTitle> jobTitles = new();
+
     private int? selectedJobFamilyId;
-    private int? selectedJobTitleId;
+    private int? selectedJobLevelId;
     private bool isManager;
     private string jobPurpose;
     private List<string> keyAccountabilities = new();
+    private List<string> additionalKnowledgeAndSkills = new();
 
 
     protected override async Task OnInitializedAsync()
@@ -81,22 +110,18 @@
         jobFamilies = await Db.JobFamilies.ToListAsync();
     }
 
-    private async Task OnJobFamilySelected()
-    {
-        jobTitles = await Db.JobTitles
-        .Where(t => t.JobFamilyId == selectedJobFamilyId)
-        .ToListAsync();
-    }
-
-    private void AddAccountability()
-    {
-        keyAccountabilities.Add(string.Empty);
-    }
-
+    private void AddAccountability() => keyAccountabilities.Add(string.Empty);
     private void RemoveAccountability(int index)
     {
         if (index >= 0 && index < keyAccountabilities.Count)
             keyAccountabilities.RemoveAt(index);
+    }
+
+    private void AddKnowledgeSkill() => additionalKnowledgeAndSkills.Add(string.Empty);
+    private void RemoveKnowledgeSkill(int index)
+    {
+        if (index >= 0 && index < additionalKnowledgeAndSkills.Count)
+            additionalKnowledgeAndSkills.RemoveAt(index);
     }
 
     private async Task GenerateDoc() { }
