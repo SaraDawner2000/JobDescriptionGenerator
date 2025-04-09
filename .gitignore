@@ -1,0 +1,7 @@
+# Build output
+bin/
+obj/
+
+# EF noise
+Migrations/*Snapshot.cs
+Migrations/*.Designer.cs
