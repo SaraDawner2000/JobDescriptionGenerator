@@ -14,12 +14,12 @@ public class JobLevelService : IJobLevelService
             );
     }
 
-    public IReadOnlyList<int> GetLevelsForFamily(int familyId) =>
-        _levelsPerFamily.TryGetValue(familyId, out var levels) ? levels : new List<int>();
+    public IReadOnlyList<(int, string)> GetLevelsForFamily(int familyId) =>
+        _levelsPerFamily.TryGetValue(familyId, out var levelIds)
+        ? levelIds.Select(id => (id, GetNameForLevel(id))).ToList()
+        : new List<(int, string)>();
 
     public string GetNameForLevel(int jobLevelId) =>
         _names.TryGetValue(jobLevelId, out var name) ? name : $"(Unknown Level {jobLevelId})";
 
-    public List<(int Id, string Name)> GetAllLevels() =>
-        _names.OrderBy(kvp => kvp.Key).Select(kvp => (kvp.Key, kvp.Value)).ToList();
 }
