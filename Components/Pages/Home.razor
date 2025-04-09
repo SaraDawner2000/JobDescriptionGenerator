@@ -21,7 +21,7 @@
 {
     <div class="mt-3">
         <label for="jobLevelSelection">Select a Job Level</label>
-        <select id="jobLevelSelection" @bind="selectedJobLevelId">
+        <select id="jobLevelSelection" @bind="selectedJobLevelId" @bind:after="LoadBaseSkills">
             <option disabled selected value="">-- Select Job Level --</option>
             @foreach (var (id, name) in JobLevelService.GetLevelsForFamily(selectedJobFamilyId.Value))
             {
@@ -33,31 +33,19 @@
 
 @if (selectedJobLevelId is not null)
 {
-    <div class="mt-3">
-        <label for="skillsList"><strong>Skills and Knowledge</strong></label>
-        <ul id="skillsList">
-            @{
-                var levelName = JobLevelService.GetNameForLevel(selectedJobLevelId.Value);
-                var skills = JobLevelDictionary.GetValueOrDefault(levelName) ?? new();
-            }
-            @foreach (var skill in skills)
-            {
-                <li>@skill</li>
-            }
-            @for (int i = 0; i < additionalKnowledgeAndSkills.Count; i++)
-            {
-                var index = i;
-                <li>
-                    <div class="mb-2">
-                        <textarea @bind="additionalKnowledgeAndSkills[index]" rows="2" cols="60"
-                            placeholder="Describe skill or knowledge..."></textarea>
-                        <button type="button" @onclick="() => RemoveKnowledgeSkill(index)">Remove</button>
-                    </div>
-                </li>
-            }
-        </ul>
+    <label for="KnowledgeAndSkills"><strong>Knowledge and Skills</strong></label>
+    <ul id="KnowledgeAndSkills" class="mt-3">
+        @for (int i = 0; i < knowledgeAndSkills.Count; i++)
+        {
+            var index = i;
+            <li class="mb-1">
+                <textarea @bind="knowledgeAndSkills[index]" rows="1" cols="60"
+                    placeholder="Describe knowledge or skill..."></textarea>
+                <button type="button" @onclick="() => RemoveKnowledgeSkill(index)">Remove</button>
+            </li>
+        }
         <button type="button" @onclick="AddKnowledgeSkill">+ Add Requirement</button>
-    </div>
+    </ul>
     <div class="mt-3">
         <label for="radioGroup"><strong>Is a People Manager?</strong></label>
         <InputRadioGroup id="radioGroup" @bind-value="isManager">
@@ -74,20 +62,20 @@
         <textarea @bind="jobPurpose" rows="4" cols="60" placeholder="Describe job purpose..."></textarea>
     </div>
 
-    <div class="mt-3">
-        <label><strong>Key Accountabilities</strong></label><br />
+    <label for="keyAccountabilities"><strong>Key Accountabilities</strong></label>
+    <ul id="keyAccountabilities" class="mt-3">
         @for (int i = 1; i < keyAccountabilities.Count; i++)
         {
             var index = i;
-            <div class="mb-2">
-                <textarea @bind="keyAccountabilities[index]" rows="2" cols="60"
+            <li class="mb-2">
+                <textarea @bind="keyAccountabilities[index]" rows="1" cols="60"
                     placeholder="Describe accountability..."></textarea>
                 <button type="button" @onclick="() => RemoveAccountability(index)">Remove</button>
-            </div>
+            </li>
         }
 
         <button type="button" @onclick="AddAccountability">+ Add Accountability</button>
-    </div>
+    </ul>
 
     <div class="mt-4">
         <button @onclick="GenerateDoc">Generate Document</button>
@@ -102,7 +90,7 @@
     private bool isManager;
     private string jobPurpose;
     private List<string> keyAccountabilities = new();
-    private List<string> additionalKnowledgeAndSkills = new();
+    private List<string> knowledgeAndSkills;
 
 
     protected override async Task OnInitializedAsync()
@@ -110,18 +98,32 @@
         jobFamilies = await Db.JobFamilies.ToListAsync();
     }
 
+    private void LoadBaseSkills()
+    {
+        if (selectedJobLevelId is not null)
+        {
+            var levelName = JobLevelService.GetNameForLevel(selectedJobLevelId.Value);
+            knowledgeAndSkills = JobLevelDictionary.GetValueOrDefault(levelName, new()).ToList();
+        }
+        else
+        {
+            knowledgeAndSkills.Clear();
+        }
+    }
+
+
+    private void AddKnowledgeSkill() => knowledgeAndSkills.Add(string.Empty);
+    private void RemoveKnowledgeSkill(int index)
+    {
+        if (index >= 0 && index < knowledgeAndSkills.Count)
+            knowledgeAndSkills.RemoveAt(index);
+    }
+
     private void AddAccountability() => keyAccountabilities.Add(string.Empty);
     private void RemoveAccountability(int index)
     {
         if (index >= 0 && index < keyAccountabilities.Count)
             keyAccountabilities.RemoveAt(index);
-    }
-
-    private void AddKnowledgeSkill() => additionalKnowledgeAndSkills.Add(string.Empty);
-    private void RemoveKnowledgeSkill(int index)
-    {
-        if (index >= 0 && index < additionalKnowledgeAndSkills.Count)
-            additionalKnowledgeAndSkills.RemoveAt(index);
     }
 
     private async Task GenerateDoc() { }
