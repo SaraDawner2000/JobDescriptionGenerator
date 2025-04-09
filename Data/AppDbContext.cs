@@ -29,6 +29,10 @@ public class AppDbContext : DbContext
             new JobFamily { JobFamilyId = 2, JobFamilyName = "Operations", JobFamilyAlias = "OPS" }
         );
 
+        modelBuilder.Entity<JobTitle>()
+            .HasIndex(j => new { j.JobFamilyId, j.JobLevelId })
+            .IsUnique();
+
         modelBuilder.Entity<JobTitle>().HasData(
             new JobTitle { JobTitleId = 1, JobTitleName = "Software Engineer", JobTitleCode = "SE1", JobFamilyId = 1, JobLevelId = 4 },
             new JobTitle { JobTitleId = 2, JobTitleName = "Senior Software Engineer", JobTitleCode = "SE2", JobFamilyId = 1, JobLevelId = 6 },
