@@ -21,6 +21,10 @@ namespace JobDescriptionGenerator.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("JobFamilyAlias")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("JobFamilyName")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -33,12 +37,71 @@ namespace JobDescriptionGenerator.Migrations
                         new
                         {
                             JobFamilyId = 1,
+                            JobFamilyAlias = "ENG",
                             JobFamilyName = "Engineering"
                         },
                         new
                         {
                             JobFamilyId = 2,
+                            JobFamilyAlias = "OPS",
                             JobFamilyName = "Operations"
+                        });
+                });
+
+            modelBuilder.Entity("JobLevel", b =>
+                {
+                    b.Property<int>("JobLevelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("JobLevelName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("JobLevelId");
+
+                    b.ToTable("JobLevels");
+
+                    b.HasData(
+                        new
+                        {
+                            JobLevelId = 4,
+                            JobLevelName = "Job Level - 4"
+                        },
+                        new
+                        {
+                            JobLevelId = 5,
+                            JobLevelName = "Job Level - 5"
+                        },
+                        new
+                        {
+                            JobLevelId = 6,
+                            JobLevelName = "Job Level - 6"
+                        },
+                        new
+                        {
+                            JobLevelId = 7,
+                            JobLevelName = "Job Level - 7"
+                        },
+                        new
+                        {
+                            JobLevelId = 8,
+                            JobLevelName = "Job Level - 8"
+                        },
+                        new
+                        {
+                            JobLevelId = 9,
+                            JobLevelName = "Job Level - 9"
+                        },
+                        new
+                        {
+                            JobLevelId = 10,
+                            JobLevelName = "Job Level - 10"
+                        },
+                        new
+                        {
+                            JobLevelId = 11,
+                            JobLevelName = "Job Level - 11"
                         });
                 });
 
@@ -51,7 +114,10 @@ namespace JobDescriptionGenerator.Migrations
                     b.Property<int>("JobFamilyId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("JobLevelName")
+                    b.Property<int>("JobLevelId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("JobTitleCode")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -63,6 +129,8 @@ namespace JobDescriptionGenerator.Migrations
 
                     b.HasIndex("JobFamilyId");
 
+                    b.HasIndex("JobLevelId");
+
                     b.ToTable("JobTitles");
 
                     b.HasData(
@@ -70,28 +138,32 @@ namespace JobDescriptionGenerator.Migrations
                         {
                             JobTitleId = 1,
                             JobFamilyId = 1,
-                            JobLevelName = "Job Level - 4",
+                            JobLevelId = 4,
+                            JobTitleCode = "SE1",
                             JobTitleName = "Software Engineer"
                         },
                         new
                         {
                             JobTitleId = 2,
                             JobFamilyId = 1,
-                            JobLevelName = "Job Level - 6",
+                            JobLevelId = 6,
+                            JobTitleCode = "SE2",
                             JobTitleName = "Senior Software Engineer"
                         },
                         new
                         {
                             JobTitleId = 3,
                             JobFamilyId = 2,
-                            JobLevelName = "Job Level - 5",
+                            JobLevelId = 5,
+                            JobTitleCode = "OA1",
                             JobTitleName = "Operations Analyst"
                         },
                         new
                         {
                             JobTitleId = 4,
                             JobFamilyId = 2,
-                            JobLevelName = "Job Level - 8",
+                            JobLevelId = 8,
+                            JobTitleCode = "LM1",
                             JobTitleName = "Logistics Manager"
                         });
                 });
@@ -104,10 +176,23 @@ namespace JobDescriptionGenerator.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("JobLevel", "JobLevel")
+                        .WithMany("JobTitles")
+                        .HasForeignKey("JobLevelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("JobFamily");
+
+                    b.Navigation("JobLevel");
                 });
 
             modelBuilder.Entity("JobFamily", b =>
+                {
+                    b.Navigation("JobTitles");
+                });
+
+            modelBuilder.Entity("JobLevel", b =>
                 {
                     b.Navigation("JobTitles");
                 });
