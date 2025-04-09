@@ -17,6 +17,7 @@ builder.Services.AddSingleton(sp =>
         .Build()
         .Deserialize<JobLevelDictionary>(yaml);
 });
+builder.Services.AddSingleton<IJobLevelService, JobLevelService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));
