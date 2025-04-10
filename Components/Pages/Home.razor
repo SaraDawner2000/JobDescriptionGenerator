@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using Microsoft.EntityFrameworkCore
 @inject AppDbContext Db
-@inject IJobLevelService JobLevelService
 @inject JobLevelDictionary JobLevelDictionary
 @rendermode InteractiveServer
 
@@ -9,7 +8,7 @@
 <h1>Generate a job description</h1>
 <div class="mt-3">
     <label for="jobFamilySelection">Select a Job Family</label>
-    <select id="jobFamilySelection" @bind="selectedJobFamilyId">
+    <select id="jobFamilySelection" @bind="selectedJobFamilyId" @bind:after="OnJobFamilySelected">
         <option disabled selected value="">-- Select Job Family --</option>
         @foreach (var family in jobFamilies)
         {
@@ -17,21 +16,24 @@
         }
     </select>
 </div>
-@if (selectedJobFamilyId is not null)
+@if (jobTitles.Any())
 {
     <div class="mt-3">
-        <label for="jobLevelSelection">Select a Job Level</label>
-        <select id="jobLevelSelection" @bind="selectedJobLevelId" @bind:after="LoadBaseSkills">
-            <option disabled selected value="">-- Select Job Level --</option>
-            @foreach (var (id, name) in JobLevelService.GetLevelsForFamily(selectedJobFamilyId.Value))
+        <label for="jobTitleSelection">Select a Job Title</label>
+        <select id="jobTitleSelection" @bind="selectedJobTitleId" @bind:after="OnJobTitleSelected">
+            <option disabled selected value="">-- Select Job Title --</option>
+            @foreach (var title in jobTitles)
             {
-                <option value="@id">@name</option>
+                <option value="@title.JobTitleId">
+                    Job Level - @title.JobLevel: @title.JobTitleName
+                </option>
             }
         </select>
     </div>
 }
 
-@if (selectedJobLevelId is not null)
+
+@if (selectedJobTitleId is not null)
 {
     <label for="KnowledgeAndSkills"><strong>Knowledge and Skills</strong></label>
     <ul id="KnowledgeAndSkills" class="mt-3">
@@ -84,13 +86,14 @@
 
 @code {
     private List<JobFamily> jobFamilies = new();
-
     private int? selectedJobFamilyId;
-    private int? selectedJobLevelId;
+
+    private List<JobTitle> jobTitles = new();
+    private int? selectedJobTitleId;
     private bool isManager;
     private string jobPurpose;
     private List<string> keyAccountabilities = new();
-    private List<string> knowledgeAndSkills;
+    private List<string> knowledgeAndSkills = new();
 
 
     protected override async Task OnInitializedAsync()
@@ -98,16 +101,26 @@
         jobFamilies = await Db.JobFamilies.ToListAsync();
     }
 
-    private void LoadBaseSkills()
+    private async Task OnJobFamilySelected()
     {
-        if (selectedJobLevelId is not null)
+        jobTitles = await Db.JobTitles
+        .Where(t => t.JobFamilyId == selectedJobFamilyId)
+        .OrderBy(t => t.JobLevel)
+        .ToListAsync();
+
+        Console.WriteLine($"Total job titles: {jobTitles.Count}");
+
+        selectedJobTitleId = null;
+    }
+
+    private async Task OnJobTitleSelected()
+    {
+        var title = await Db.JobTitles.FindAsync(selectedJobTitleId);
+
+        if (title is not null)
         {
-            var levelName = JobLevelService.GetNameForLevel(selectedJobLevelId.Value);
+            var levelName = $"Job Level - {title.JobLevel}";
             knowledgeAndSkills = JobLevelDictionary.GetValueOrDefault(levelName, new()).ToList();
-        }
-        else
-        {
-            knowledgeAndSkills.Clear();
         }
     }
 

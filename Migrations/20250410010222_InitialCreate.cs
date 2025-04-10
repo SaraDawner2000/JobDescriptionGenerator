@@ -18,7 +18,8 @@ namespace JobDescriptionGenerator.Migrations
                 {
                     JobFamilyId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    JobFamilyName = table.Column<string>(type: "TEXT", nullable: false)
+                    JobFamilyName = table.Column<string>(type: "TEXT", nullable: false),
+                    JobFamilyAlias = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,8 +33,9 @@ namespace JobDescriptionGenerator.Migrations
                     JobTitleId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     JobTitleName = table.Column<string>(type: "TEXT", nullable: false),
+                    JobTitleCode = table.Column<string>(type: "TEXT", nullable: false),
                     JobFamilyId = table.Column<int>(type: "INTEGER", nullable: false),
-                    JobLevelName = table.Column<string>(type: "TEXT", nullable: false)
+                    JobLevel = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,28 +50,29 @@ namespace JobDescriptionGenerator.Migrations
 
             migrationBuilder.InsertData(
                 table: "JobFamilies",
-                columns: new[] { "JobFamilyId", "JobFamilyName" },
+                columns: new[] { "JobFamilyId", "JobFamilyAlias", "JobFamilyName" },
                 values: new object[,]
                 {
-                    { 1, "Engineering" },
-                    { 2, "Operations" }
+                    { 1, "ENG", "Engineering" },
+                    { 2, "OPS", "Operations" }
                 });
 
             migrationBuilder.InsertData(
                 table: "JobTitles",
-                columns: new[] { "JobTitleId", "JobFamilyId", "JobLevelName", "JobTitleName" },
+                columns: new[] { "JobTitleId", "JobFamilyId", "JobLevel", "JobTitleCode", "JobTitleName" },
                 values: new object[,]
                 {
-                    { 1, 1, "Job Level - 4", "Software Engineer" },
-                    { 2, 1, "Job Level - 6", "Senior Software Engineer" },
-                    { 3, 2, "Job Level - 5", "Operations Analyst" },
-                    { 4, 2, "Job Level - 8", "Logistics Manager" }
+                    { 1, 1, 4, "SE1", "Software Engineer" },
+                    { 2, 1, 6, "SE2", "Senior Software Engineer" },
+                    { 3, 2, 5, "OA1", "Operations Analyst" },
+                    { 4, 2, 8, "LM1", "Logistics Manager" }
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobTitles_JobFamilyId",
+                name: "IX_JobTitles_JobFamilyId_JobLevel",
                 table: "JobTitles",
-                column: "JobFamilyId");
+                columns: new[] { "JobFamilyId", "JobLevel" },
+                unique: true);
         }
 
         /// <inheritdoc />
