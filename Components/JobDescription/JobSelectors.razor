@@ -1,0 +1,54 @@
+@using JobDescriptionGenerator.Forms
+@using Microsoft.AspNetCore.Components.Forms
+@inject AppDbContext Db
+
+<!-- Job Family Dropdown -->
+<div class="mt-3">
+    <label for="jobFamilySelection">Select a Job Family</label>
+    <InputSelect id="jobFamilySelection" @bind-Value="form.JobFamilyId" @bind-Value:after="TriggerOnFamilySelected">
+        <option disabled selected value="">-- Select Job Family --</option>
+        @foreach (var family in jobFamilies)
+        {
+            <option value="@family.JobFamilyId">@family.JobFamilyName</option>
+        }
+    </InputSelect>
+    <ValidationMessage For="@(() => form.JobFamilyId)" />
+</div>
+
+<!-- Job Title Dropdown -->
+@if (jobTitles.Any())
+{
+    <div class="mt-3">
+        <label for="jobTitleSelection">Select a Job Title</label>
+        <InputSelect id="jobTitleSelection" @bind-Value="form.JobTitleId" @bind-Value:after="TriggerOnTitleSelected">
+            <option disabled selected value="">-- Select Job Title --</option>
+            @foreach (var title in jobTitles)
+            {
+                <option value="@title.JobTitleId">Job Level - @title.JobLevel: @title.JobTitleName</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => form.JobTitleId)" />
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public JobDescriptionForm form { get; set; }
+
+    [Parameter, EditorRequired] public List<JobFamily> jobFamilies { get; set; }
+    [Parameter, EditorRequired] public List<JobTitle> jobTitles { get; set; }
+
+    [Parameter] public EventCallback OnJobFamilySelected { get; set; }
+    [Parameter] public EventCallback OnJobTitleSelected { get; set; }
+
+    private async Task TriggerOnFamilySelected()
+    {
+        if (OnJobFamilySelected.HasDelegate)
+            await OnJobFamilySelected.InvokeAsync();
+    }
+
+    private async Task TriggerOnTitleSelected()
+    {
+        if (OnJobTitleSelected.HasDelegate)
+            await OnJobTitleSelected.InvokeAsync();
+    }
+}

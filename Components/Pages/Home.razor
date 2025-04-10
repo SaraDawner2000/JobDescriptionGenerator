@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Microsoft.EntityFrameworkCore
 @using JobDescriptionGenerator.Forms
+@using JobDescriptionGenerator.Components.JobDescription
 @inject AppDbContext Db
 @inject JobLevelDictionary JobLevelDictionary
 @rendermode InteractiveServer
@@ -11,86 +12,20 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <!-- Job Family Dropdown -->
-    <div class="mt-3">
-        <label for="jobFamilySelection">Select a Job Family</label>
-        <InputSelect id="jobFamilySelection" @bind-Value="form.JobFamilyId" @bind-Value:after="OnJobFamilySelected">
-            <option disabled selected value="">-- Select Job Family --</option>
-            @foreach (var family in jobFamilies)
-            {
-                <option value="@family.JobFamilyId">@family.JobFamilyName</option>
-            }
-        </InputSelect>
-        <ValidationMessage For="@(() => form.JobFamilyId)" />
-    </div>
+    <JobSelectors Form="form" JobFamilies="jobFamilies" JobTitles="jobTitles" OnJobFamilySelected="OnJobFamilySelected"
+        OnJobTitleSelected="OnJobTitleSelected" />
 
-    <!-- Job Title Dropdown -->
-    @if (jobTitles.Any())
-    {
-        <div class="mt-3">
-            <label for="jobTitleSelection">Select a Job Title</label>
-            <InputSelect id="jobTitleSelection" @bind-Value="form.JobTitleId" @bind-Value:after="OnJobTitleSelected">
-                <option disabled selected value="">-- Select Job Title --</option>
-                @foreach (var title in jobTitles)
-                {
-                    <option value="@title.JobTitleId">Job Level - @title.JobLevel: @title.JobTitleName</option>
-                }
-            </InputSelect>
-            <ValidationMessage For="@(() => form.JobTitleId)" />
-        </div>
-    }
 
-    <!-- Is Manager -->
     @if (form.JobTitleId is not null)
     {
-        <div class="mt-3">
-            <label><strong>Is a People Manager?</strong></label>
-            <InputRadioGroup @bind-Value="form.IsManager">
-                <InputRadio id="managerYes" Value="true" />
-                <label for="managerYes">Yes</label>
-                <InputRadio id="managerNo" Value="false" class="ms-2" />
-                <label for="managerNo">No</label>
-            </InputRadioGroup>
-        </div>
+        <IsManagerField Form="form" />
 
-        <!-- Job Purpose -->
-        <div class="mt-3">
-            <label><strong>Job Purpose</strong></label><br />
-            <InputTextArea @bind-Value="form.JobPurpose" rows="4" cols="60" placeholder="Describe job purpose..." />
-            <ValidationMessage For="@(() => form.JobPurpose)" />
-        </div>
+        <EditableList Label="Knowledge and Skills" Items="form.KnowledgeAndSkills" For="@(() => form.KnowledgeAndSkills)" />
 
-        <!-- Knowledge and Skills -->
-        <div class="mt-3">
-            <label><strong>Knowledge and Skills</strong></label>
-            @for (int i = 0; i < form.KnowledgeAndSkills.Count; i++)
-            {
-                var index = i;
-                <div class="mt-2">
-                    <InputTextArea @bind-Value="form.KnowledgeAndSkills[index]" rows="1" cols="60"
-                        placeholder="Describe knowledge or skill..." />
-                    <button type="button" @onclick="() => RemoveKnowledgeSkill(index)">Remove</button>
-                </div>
-            }
-            <ValidationMessage For="@(() => form.KnowledgeAndSkills)" />
-        </div>
-        <button type="button" @onclick="AddKnowledgeSkill">+ Add Skill</button>
+        <JobPurposeField Form="form" />
 
-        <!-- Key Accountabilities -->
-        <div class="mt-3">
-            <label><strong>Key Accountabilities</strong></label>
-            @for (int i = 0; i < form.KeyAccountabilities.Count; i++)
-            {
-                var index = i;
-                <div class="mt-2">
-                    <InputTextArea @bind-Value="form.KeyAccountabilities[index]" rows="1" cols="60"
-                        placeholder="Describe accountability..." />
-                    <button type="button" @onclick="() => RemoveAccountability(index)">Remove</button>
-                </div>
-            }
-            <ValidationMessage For="@(() => form.KeyAccountabilities)" />
-        </div>
-        <button type="button" @onclick="AddAccountability">+ Add Accountability</button>
+        <EditableList Label="Key Accountabilities" Items="form.KeyAccountabilities"
+            For="@(() => form.KeyAccountabilities)" />
 
         <div class="mt-4">
             <button type="submit">Generate Document</button>
@@ -128,20 +63,6 @@
         var levelKey = $"Job Level - {title.JobLevel}";
         form.KnowledgeAndSkills = JobLevelDictionary.GetValueOrDefault(levelKey, new()).ToList();
 
-    }
-
-    private void AddKnowledgeSkill() => form.KnowledgeAndSkills.Add(string.Empty);
-    private void RemoveKnowledgeSkill(int index)
-    {
-        if (index >= 0 && index < form.KnowledgeAndSkills.Count)
-            form.KnowledgeAndSkills.RemoveAt(index);
-    }
-
-    private void AddAccountability() => form.KeyAccountabilities.Add(string.Empty);
-    private void RemoveAccountability(int index)
-    {
-        if (index >= 0 && index < form.KeyAccountabilities.Count)
-            form.KeyAccountabilities.RemoveAt(index);
     }
 
     private async Task GenerateDoc()
