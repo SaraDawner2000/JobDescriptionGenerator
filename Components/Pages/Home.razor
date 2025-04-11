@@ -1,10 +1,19 @@
 ﻿@page "/"
-@using Microsoft.EntityFrameworkCore
-@using JobDescriptionGenerator.Forms
-@using JobDescriptionGenerator.Components.JobDescription
-@inject AppDbContext Db
-@inject JobLevelDictionary JobLevelDictionary
 @rendermode InteractiveServer
+
+@using Microsoft.EntityFrameworkCore
+
+@using JobDescriptionGenerator.Components.JobDescription
+@using JobDescriptionGenerator.Forms
+@using JobDescriptionGenerator.Services
+@using JobDescriptionGenerator.Constants;
+
+
+@inject AppDbContext Db
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject JobLevelDictionary JobLevelDictionary
+
 
 <h1>Generate a Job Description</h1>
 
@@ -58,7 +67,7 @@
 
     private async Task OnJobTitleSelected()
     {
-        var title = await Db.JobTitles.FindAsync(form.JobTitleId);
+        var title = await Db.JobTitles.FindAsync(form.JobTitleId) ?? new();
 
         var levelKey = $"Job Level - {title.JobLevel}";
         form.KnowledgeAndSkills = JobLevelDictionary.GetValueOrDefault(levelKey, new()).ToList();
@@ -67,6 +76,19 @@
 
     private async Task GenerateDoc()
     {
-        Console.WriteLine("🚀 Form submitted!");
+        var response = await Http.PostAsJsonAsync("api/jobdoc/generate", form);
+
+        if (!response.IsSuccessStatusCode)
+            return;
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        var base64 = Convert.ToBase64String(bytes);
+
+        var fileName = $"{form.JobTitleId}_JobDescription.docx";
+
+        await JS.InvokeVoidAsync("downloadFileFromBytes",
+        fileName,
+        MimeTypes.Docx,
+        base64);
     }
 }

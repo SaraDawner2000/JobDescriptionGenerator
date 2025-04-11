@@ -2,8 +2,8 @@
 @using System.Linq.Expressions
 
 <div class="mt-3">
-    <label for="@Label"><strong>@Label</strong></label>
-    <ul id="@Label.Replace(" ", "")" class="mt-2">
+    <label><strong>@Label</strong></label>
+    <ul class="mt-2">
         @for (int i = 0; i < Items.Count; i++)
         {
             var index = i;
@@ -21,6 +21,7 @@
     [Parameter, EditorRequired] public string Label { get; set; } = default!;
     [Parameter, EditorRequired] public List<string> Items { get; set; } = new();
 
+    // enables mapping the validation message to the correct form attribute
     [Parameter, EditorRequired] public Expression<Func<object>> For { get; set; } = default!;
 
     private void AddItem() => Items.Add(string.Empty);

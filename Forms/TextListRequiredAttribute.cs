@@ -1,3 +1,5 @@
+// This custom attribute allows for checking that the list submitted not only has an element,
+// but specifically a non-empty string element
 using System.ComponentModel.DataAnnotations;
 
 public class TextListRequiredAttribute : ValidationAttribute

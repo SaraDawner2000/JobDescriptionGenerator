@@ -18,10 +18,10 @@ public class JobDescriptionForm
     public string JobPurpose { get; set; }
 
     [Required]
-    [TextListRequiredAttribute(ErrorMessage = "At least one accountability is required.")]
+    [TextListRequired(ErrorMessage = "At least one accountability is required.")]
     public List<string> KeyAccountabilities { get; set; } = new();
 
     [Required]
-    [TextListRequiredAttribute(ErrorMessage = "At least one knowledge or skill is required.")]
+    [TextListRequired(ErrorMessage = "At least one knowledge or skill is required.")]
     public List<string> KnowledgeAndSkills { get; set; } = new();
 }

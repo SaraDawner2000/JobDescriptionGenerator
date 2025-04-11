@@ -5,41 +5,43 @@
 <!-- Job Family Dropdown -->
 <div class="mt-3">
     <label for="jobFamilySelection">Select a Job Family</label>
-    <InputSelect id="jobFamilySelection" @bind-Value="form.JobFamilyId" @bind-Value:after="TriggerOnFamilySelected">
+    <InputSelect id="jobFamilySelection" @bind-Value="Form.JobFamilyId" @bind-Value:after="TriggerOnFamilySelected">
         <option disabled selected value="">-- Select Job Family --</option>
-        @foreach (var family in jobFamilies)
+        @foreach (var family in JobFamilies)
         {
             <option value="@family.JobFamilyId">@family.JobFamilyName</option>
         }
     </InputSelect>
-    <ValidationMessage For="@(() => form.JobFamilyId)" />
+    <ValidationMessage For="@(() => Form.JobFamilyId)" />
 </div>
 
 <!-- Job Title Dropdown -->
-@if (jobTitles.Any())
+@if (JobTitles.Any())
 {
     <div class="mt-3">
         <label for="jobTitleSelection">Select a Job Title</label>
-        <InputSelect id="jobTitleSelection" @bind-Value="form.JobTitleId" @bind-Value:after="TriggerOnTitleSelected">
+        <InputSelect id="jobTitleSelection" @bind-Value="Form.JobTitleId" @bind-Value:after="TriggerOnTitleSelected">
             <option disabled selected value="">-- Select Job Title --</option>
-            @foreach (var title in jobTitles)
+            @foreach (var title in JobTitles)
             {
                 <option value="@title.JobTitleId">Job Level - @title.JobLevel: @title.JobTitleName</option>
             }
         </InputSelect>
-        <ValidationMessage For="@(() => form.JobTitleId)" />
+        <ValidationMessage For="@(() => Form.JobTitleId)" />
     </div>
 }
 
 @code {
-    [Parameter, EditorRequired] public JobDescriptionForm form { get; set; }
+    [Parameter, EditorRequired] public JobDescriptionForm Form { get; set; } = new();
 
-    [Parameter, EditorRequired] public List<JobFamily> jobFamilies { get; set; }
-    [Parameter, EditorRequired] public List<JobTitle> jobTitles { get; set; }
+    [Parameter, EditorRequired] public List<JobFamily> JobFamilies { get; set; } = new();
+    [Parameter, EditorRequired] public List<JobTitle> JobTitles { get; set; } = new();
 
     [Parameter] public EventCallback OnJobFamilySelected { get; set; }
     [Parameter] public EventCallback OnJobTitleSelected { get; set; }
 
+    // These are (unfortunately) neccessary, because @bind-Value:after expects an action or task,
+    // and EventCallback is too complex
     private async Task TriggerOnFamilySelected()
     {
         if (OnJobFamilySelected.HasDelegate)
