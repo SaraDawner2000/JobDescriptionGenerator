@@ -1,4 +1,6 @@
 using JobDescriptionGenerator.Components;
+using JobDescriptionGenerator.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -9,6 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped(sp =>
+{
+    var nav = sp.GetRequiredService<NavigationManager>();
+    return new HttpClient { BaseAddress = new Uri(nav.BaseUri) };
+});
+
+
 builder.Services.AddSingleton(sp =>
 {
     var yaml = File.ReadAllText("Data/JobLevels.yaml");
@@ -17,6 +26,7 @@ builder.Services.AddSingleton(sp =>
         .Build()
         .Deserialize<JobLevelDictionary>(yaml);
 });
+builder.Services.AddSingleton<ErrorToastService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));
